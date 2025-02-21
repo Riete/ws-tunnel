@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	github.com/riete/go-websocket v1.0.5
-	github.com/riete/ws2ssh v0.0.15
+	github.com/riete/ws2ssh v0.0.16
 	github.com/spf13/cobra v1.8.1
 )
 

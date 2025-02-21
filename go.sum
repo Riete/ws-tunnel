@@ -9,6 +9,8 @@ github.com/riete/go-websocket v1.0.5 h1:WAO3wtJf+3izInLYUgLcR6Z98hPd35ZGLJJB6nXk
 github.com/riete/go-websocket v1.0.5/go.mod h1:5zxEbvqN5COzfFNo+KAxp3hSkJKHAuBYLazAgaeZsWA=
 github.com/riete/ws2ssh v0.0.15 h1:BrALoSXwadroFfBDawBXbnfofAq9pa8HlmwvwPuFEuI=
 github.com/riete/ws2ssh v0.0.15/go.mod h1:ugEciebrM0O/zpVseV8X56qEn7bxByTI8Ju396SvNAY=
+github.com/riete/ws2ssh v0.0.16 h1:MfGOGWdhZdrpQYXYwMdWumvuf5oaxo9PYP4v7eOzsjg=
+github.com/riete/ws2ssh v0.0.16/go.mod h1:ugEciebrM0O/zpVseV8X56qEn7bxByTI8Ju396SvNAY=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/spf13/cobra v1.8.1 h1:e5/vxKd/rZsfSJMUX1agtjeTDf+qv1/JdBF8gg5k9ZM=
 github.com/spf13/cobra v1.8.1/go.mod h1:wHxEcudfqmLYa8iTfL+OuZPbBZkmvliBWKIezN3kD9Y=

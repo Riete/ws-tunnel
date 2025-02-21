@@ -86,7 +86,7 @@ func DialAsProxy(url, clientId, proxyAddr string) {
 	}
 	log.Println("connection established success")
 
-	proxyServer := t.BuildSocks5ProxyServer(nil)
+	proxyServer := t.BuildSocks5ProxyServer()
 	proxyStartErr := make(chan string)
 	go func() {
 		if err = proxyServer.ListenAndServeContext(ctx, proxyAddr); err != nil {
@@ -100,5 +100,5 @@ func DialAsProxy(url, clientId, proxyAddr string) {
 	case <-time.After(3 * time.Second):
 		log.Printf("start proxy server success, proxy server listen at [%s]", proxyAddr)
 	}
-	log.Printf("connection lost: %s, proxy server [%s] quit", t.Wait(), proxyAddr)
+	log.Printf("connection lost: %v, proxy server [%s] quit", t.Wait(), proxyAddr)
 }

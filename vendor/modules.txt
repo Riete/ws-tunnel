@@ -10,7 +10,7 @@ github.com/inconshreveable/mousetrap
 # github.com/riete/go-websocket v1.0.5
 ## explicit; go 1.22
 github.com/riete/go-websocket
-# github.com/riete/ws2ssh v0.0.15
+# github.com/riete/ws2ssh v0.0.16
 ## explicit; go 1.21
 github.com/riete/ws2ssh
 # github.com/spf13/cobra v1.8.1
