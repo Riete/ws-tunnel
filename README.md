@@ -8,6 +8,13 @@ make build-linux-arm64
 make build-linux
 ```
 
+## Global Flag
+```
+Global Flags:
+      --token string   auth token (default "ws-tunnel-token")
+```
+token is used for authentication
+
 ## Run  Server
 Server accepts connections from Proxy and Client
 ```

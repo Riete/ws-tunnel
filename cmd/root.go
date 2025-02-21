@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/riete/ws-tunnel/pkg/ws"
+
 	"github.com/spf13/cobra"
 )
 
@@ -16,4 +18,8 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVar(&ws.DefaultToke, "token", ws.DefaultToke, "auth token")
 }

@@ -53,7 +53,7 @@ func DialAsClient(url, clientId string) {
 	go conn.SendHeartbeat(ctx, 20*time.Second, 3, []byte(fmt.Sprintf("ping sent from client [%s]", clientId)), nil)
 
 	t := ws2ssh.NewSSHTunnel(conn.Conn())
-	if err = t.AsServerSide(nil); err != nil {
+	if err = t.AsServerSide(ws2ssh.NewServerConfig("ws-tunnel", DefaultToke, nil)); err != nil {
 		log.Printf("build tunnel server side failed: %s", err.Error())
 		return
 	}
@@ -80,7 +80,7 @@ func DialAsProxy(url, clientId, proxyAddr string) {
 	go conn.SendHeartbeat(ctx, 20*time.Second, 3, []byte("ping sent from proxy"), nil)
 
 	t := ws2ssh.NewSSHTunnel(conn.Conn())
-	if err = t.AsClientSide(nil); err != nil {
+	if err = t.AsClientSide(ws2ssh.NewClientConfig("ws-tunnel", DefaultToke, nil)); err != nil {
 		log.Printf("build tunnel client side failed: %s", err.Error())
 		return
 	}
