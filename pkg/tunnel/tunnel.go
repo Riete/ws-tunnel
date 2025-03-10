@@ -16,6 +16,7 @@ type Tunnel struct {
 	proxyAddr    string
 	proxyStarted bool
 	l            sync.Mutex
+	clientId     string
 }
 
 func (t *Tunnel) ProxyServerAddr() string {
@@ -40,7 +41,7 @@ func (t *Tunnel) StartProxyServer(proxyAddr string) error {
 	proxyStartErr := make(chan error)
 	go func() {
 		if err := proxyServer.ListenAndServeContext(t.C, proxyAddr); err != nil {
-			proxyStartErr <- fmt.Errorf("proxy server fail to listen at [%s]: %s", proxyAddr, err.Error())
+			proxyStartErr <- fmt.Errorf("[%s]: proxy server fail to listen at [%s]: %s", t.clientId, proxyAddr, err.Error())
 		}
 	}()
 	select {
@@ -48,7 +49,7 @@ func (t *Tunnel) StartProxyServer(proxyAddr string) error {
 		log.Println(err.Error())
 		return err
 	case <-time.After(3 * time.Second):
-		log.Printf("start proxy server success, proxy server listen at [%s]", proxyAddr)
+		log.Printf("[%s]: start proxy server success, proxy server listen at [%s]", t.clientId, proxyAddr)
 	}
 	t.proxyAddr = proxyAddr
 	t.proxyStarted = true
@@ -70,7 +71,7 @@ func (tp *TunnelPool) Get(clientId string) (*Tunnel, bool) {
 func (tp *TunnelPool) Set(ctx context.Context, clientId string, tunnel *ws2ssh.SSHTunnel) *Tunnel {
 	tp.rw.Lock()
 	defer tp.rw.Unlock()
-	t := &Tunnel{T: tunnel, C: ctx}
+	t := &Tunnel{T: tunnel, C: ctx, clientId: clientId}
 	tp.t[clientId] = t
 	return t
 }
