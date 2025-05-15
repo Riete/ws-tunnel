@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"log"
 	"time"
+
+	"github.com/riete/ws-tunnel/pkg/logger"
 
 	"github.com/riete/ws-tunnel/pkg/ws"
 	"github.com/spf13/cobra"
@@ -22,7 +23,7 @@ var clientCmd = &cobra.Command{
 		}
 		for {
 			ws.DialAsClient(scheme+serverAddr+ws.ClientPath, clientId)
-			log.Println("try re-connect after 5 seconds")
+			logger.Warn("try re-connect after 5 seconds")
 			time.Sleep(5 * time.Second)
 		}
 	},

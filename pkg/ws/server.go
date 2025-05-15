@@ -3,9 +3,10 @@ package ws
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/riete/ws-tunnel/pkg/logger"
 
 	"github.com/riete/ws-tunnel/pkg/tunnel"
 	"github.com/riete/ws2ssh"
@@ -19,25 +20,25 @@ var DefaultToke = "ws-tunnel-token"
 
 func ServerForClient(w http.ResponseWriter, r *http.Request) {
 	clientId := r.Header.Get(ClientIdKey)
-	log.Printf("receive connection request from client [%s]", clientId)
+	logger.Info("receive connection request from client", "client_id", clientId)
 	if _, exist := tunnel.Get(clientId); exist {
-		log.Printf("client [%s] already connected, close connection request", clientId)
+		logger.Warn("client already connected, close connection request", "client_id", clientId)
 		return
 	}
 
 	connectedAt := r.Header.Get(ConnectedAtKey)
 	conn, err := websocket.NewServer(w, r, nil, websocket.WithDisableCheckOrigin())
 	if err != nil {
-		log.Printf("websocket server setup failed: %s", err.Error())
+		logger.Error(fmt.Sprintf("websocket server setup failed: %s", err.Error()))
 		return
 	}
 	defer conn.Close()
 	conn.SetPongHandler(func(s string) error {
-		log.Printf("receive pong reply from client: [%s], %s, connected-at: [%s]", clientId, s, connectedAt)
+		logger.Debug(fmt.Sprintf("receive pong reply from client: %s", s), "client_id", clientId, "connected_at", connectedAt)
 		return nil
 	})
 	conn.SetPingHandler(func(s string) error {
-		log.Printf("receive ping from client: [%s], %s, connected-at: [%s]", clientId, s, connectedAt)
+		logger.Debug(fmt.Sprintf("receive ping from client: %s", s), "client_id", clientId, "connected_at", connectedAt)
 		return nil
 	})
 
@@ -47,33 +48,33 @@ func ServerForClient(w http.ResponseWriter, r *http.Request) {
 
 	t := ws2ssh.NewSSHTunnel(conn.Conn())
 	if err = t.AsClientSide(ws2ssh.NewClientConfig("ws-tunnel", DefaultToke, nil)); err != nil {
-		log.Printf("build tunnel client side for client [%s] failed: %s", clientId, err.Error())
+		logger.Error(fmt.Sprintf("build tunnel client side for client failed: %s", err.Error()), "client_id", clientId)
 		return
 	}
 	tunnel.Set(ctx, clientId, t)
 	defer tunnel.Delete(clientId)
 
-	log.Printf("connection from client [%s] established success", clientId)
-	log.Printf("connection from client [%s] disconnected: %v", clientId, t.Wait())
+	logger.Info("connection from client established success", "client_id", clientId)
+	logger.Warn(fmt.Sprintf("connection from client disconnected: %v", t.Wait()), "client_id", clientId)
 }
 
 func ServerForProxy(w http.ResponseWriter, r *http.Request) {
 	clientId := r.Header.Get(ClientIdKey)
-	log.Printf("receive connection request from proxy to use client [%s] to setup proxy", clientId)
+	logger.Info("receive connection request from proxy to use client to setup proxy", "client_id", clientId)
 
 	connectedAt := r.Header.Get(ConnectedAtKey)
 	conn, err := websocket.NewServer(w, r, nil, websocket.WithDisableCheckOrigin())
 	if err != nil {
-		log.Printf("websocket server setup failed: %s", err.Error())
+		logger.Error(fmt.Sprintf("websocket server setup failed: %s", err.Error()))
 		return
 	}
 	defer conn.Close()
 	conn.SetPongHandler(func(s string) error {
-		log.Printf("receive pong reply from proxy: %s, connected-at: [%s]", s, connectedAt)
+		logger.Debug(fmt.Sprintf("receive pong reply from proxy: %s", s), "connected_at", connectedAt)
 		return nil
 	})
 	conn.SetPingHandler(func(s string) error {
-		log.Printf("receive ping from proxy, %s, connected-at: [%s]", s, connectedAt)
+		logger.Debug(fmt.Sprintf("receive ping from proxy, %s", s), "connected_at", connectedAt)
 		return nil
 	})
 
@@ -83,10 +84,10 @@ func ServerForProxy(w http.ResponseWriter, r *http.Request) {
 
 	t := ws2ssh.NewSSHTunnel(conn.Conn())
 	if err = t.AsServerSide(ws2ssh.NewServerConfig("ws-tunnel", DefaultToke, nil)); err != nil {
-		log.Printf("build tunnel server side for proxy failed: %s", err.Error())
+		logger.Error(fmt.Sprintf("build tunnel server side for proxy failed: %s", err.Error()))
 		return
 	}
-	log.Printf("connection from proxy to use client [%s] to setup proxy established success", clientId)
+	logger.Info("connection from proxy to use client to setup proxy established success", "client_id", clientId)
 	go func() {
 		for {
 			select {
@@ -95,7 +96,7 @@ func ServerForProxy(w http.ResponseWriter, r *http.Request) {
 			default:
 				next, exist := tunnel.Get(clientId)
 				if !exist {
-					log.Printf("[%s] is not connected, waiting for it to connect", clientId)
+					logger.Warn("client is not connected, waiting for it to connect", "client_id", clientId)
 					time.Sleep(5 * time.Second)
 				} else {
 					_ = t.HandleOutgoingContext(next.C, ws2ssh.Next(next.T))
@@ -103,5 +104,5 @@ func ServerForProxy(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}()
-	log.Printf("connection from proxy to use client [%s] to setup proxy disconnected: %v", clientId, t.Wait())
+	logger.Warn(fmt.Sprintf("connection from proxy to use client to setup proxy disconnected: %v", t.Wait()), "client_id", clientId)
 }

@@ -3,9 +3,10 @@ package tunnel
 import (
 	"context"
 	"fmt"
-	"log"
 	"sync"
 	"time"
+
+	"github.com/riete/ws-tunnel/pkg/logger"
 
 	"github.com/riete/ws2ssh"
 )
@@ -41,15 +42,15 @@ func (t *Tunnel) StartProxyServer(proxyAddr string) error {
 	proxyStartErr := make(chan error)
 	go func() {
 		if err := proxyServer.ListenAndServeContext(t.C, proxyAddr); err != nil {
-			proxyStartErr <- fmt.Errorf("[%s]: proxy server fail to listen at [%s]: %s", t.clientId, proxyAddr, err.Error())
+			proxyStartErr <- fmt.Errorf("proxy server fail to start: %s", err.Error())
 		}
 	}()
 	select {
 	case err := <-proxyStartErr:
-		log.Println(err.Error())
+		logger.Error(err.Error(), "client_id", t.clientId, "listen_at", proxyAddr)
 		return err
 	case <-time.After(3 * time.Second):
-		log.Printf("[%s]: start proxy server success, proxy server listen at [%s]", t.clientId, proxyAddr)
+		logger.Info("start proxy server success", "client_id", t.clientId, "listen_at", proxyAddr)
 	}
 	t.proxyAddr = proxyAddr
 	t.proxyStarted = true

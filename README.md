@@ -11,9 +11,11 @@ make build-linux
 ## Global Flag
 ```
 Global Flags:
-      --token string   auth token (default "ws-tunnel-token")
+      --log-level string   log level, one of debug, info, warn, error (default "info")
+      --token string       auth token (default "ws-tunnel-token")
 ```
-token is used for authentication
+token is used for authentication  
+if log-level is debug, log will also output to stdout
 
 ## Run  Server
 Server accepts connections from Proxy and Client

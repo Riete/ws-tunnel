@@ -3,9 +3,10 @@ package ws
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/riete/ws-tunnel/pkg/logger"
 
 	"github.com/riete/ws2ssh"
 
@@ -22,20 +23,20 @@ func header(clientId, connectedAt string) http.Header {
 }
 
 func dial(url, clientId string) (*websocket.Conn, error) {
-	log.Printf("try to connect to server [%s]", url)
+	logger.Info(fmt.Sprintf("try to connect to server [%s]", url))
 	connectedAt := time.Now().Format(time.DateTime)
 	h := header(clientId, connectedAt)
 	conn, err := websocket.NewClient(nil, url, h)
 	if err != nil {
-		log.Printf("connect failed: %s", err.Error())
+		logger.Error(fmt.Sprintf("connect failed: %s", err.Error()))
 		return conn, err
 	}
 	conn.SetPongHandler(func(s string) error {
-		log.Printf("receive pong reply from server: %s, connected-at: [%s]", s, connectedAt)
+		logger.Debug(fmt.Sprintf("receive pong reply from server: %s", s), "connected_at", connectedAt)
 		return nil
 	})
 	conn.SetPingHandler(func(s string) error {
-		log.Printf("receive ping from server: %s, connected-at: [%s]", s, connectedAt)
+		logger.Debug(fmt.Sprintf("receive ping from server: %s", s), "connected_at", connectedAt)
 		return nil
 	})
 	return conn, nil
@@ -54,12 +55,12 @@ func DialAsClient(url, clientId string) {
 
 	t := ws2ssh.NewSSHTunnel(conn.Conn())
 	if err = t.AsServerSide(ws2ssh.NewServerConfig("ws-tunnel", DefaultToke, nil)); err != nil {
-		log.Printf("build tunnel server side failed: %s", err.Error())
+		logger.Error(fmt.Sprintf("build tunnel server side failed: %s", err.Error()))
 		return
 	}
-	log.Println("connection established success")
+	logger.Info("connection established success")
 	go t.HandleOutgoing(ws2ssh.Direct) // nolint: errcheck
-	log.Printf("connection lost: %v", t.Wait())
+	logger.Error(fmt.Sprintf("connection lost: %v", t.Wait()))
 }
 
 func DialAsProxy(url, clientId, proxyAddr string) {
@@ -81,24 +82,24 @@ func DialAsProxy(url, clientId, proxyAddr string) {
 
 	t := ws2ssh.NewSSHTunnel(conn.Conn())
 	if err = t.AsClientSide(ws2ssh.NewClientConfig("ws-tunnel", DefaultToke, nil)); err != nil {
-		log.Printf("build tunnel client side failed: %s", err.Error())
+		logger.Error(fmt.Sprintf("build tunnel client side failed: %s", err.Error()))
 		return
 	}
-	log.Println("connection established success")
+	logger.Info("connection established success")
 
 	proxyServer := t.BuildSocks5ProxyServer()
 	proxyStartErr := make(chan string)
 	go func() {
 		if err = proxyServer.ListenAndServeContext(ctx, proxyAddr); err != nil {
-			proxyStartErr <- fmt.Sprintf("proxy server fail to listen at [%s]: %s", proxyAddr, err.Error())
+			proxyStartErr <- fmt.Sprintf("proxy server fail to start: %s", err.Error())
 		}
 	}()
 	select {
 	case m := <-proxyStartErr:
-		log.Println(m)
+		logger.Error(m, "listen_at", proxyAddr)
 		return
 	case <-time.After(3 * time.Second):
-		log.Printf("start proxy server success, proxy server listen at [%s]", proxyAddr)
+		logger.Info("start proxy server success", "listen_at", proxyAddr)
 	}
-	log.Printf("connection lost: %v, proxy server [%s] quit", t.Wait(), proxyAddr)
+	logger.Error(fmt.Sprintf("connection lost: %v, proxy server quit", t.Wait()), "listen_at", proxyAddr)
 }

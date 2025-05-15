@@ -2,8 +2,9 @@ package ws
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/riete/ws-tunnel/pkg/logger"
 
 	"github.com/riete/ws-tunnel/pkg/tunnel"
 )
@@ -23,6 +24,6 @@ func Listen(addr string) {
 	http.HandleFunc(ProxyPath, ServerForProxy)
 	http.HandleFunc(ClientPath, ServerForClient)
 	http.HandleFunc("/tunnel-list", TunnelList)
-	log.Printf("start server, server listen at [%s]", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
+	logger.Info("server started", "listen_at", addr)
+	logger.Error(http.ListenAndServe(addr, nil).Error())
 }

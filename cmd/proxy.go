@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"log"
 	"time"
+
+	"github.com/riete/ws-tunnel/pkg/logger"
 
 	"github.com/riete/ws-tunnel/pkg/ws"
 	"github.com/spf13/cobra"
@@ -21,7 +22,7 @@ var proxyCmd = &cobra.Command{
 		}
 		for {
 			ws.DialAsProxy(scheme+serverAddr+ws.ProxyPath, clientId, proxyBindIP+":"+proxyListenPort)
-			log.Println("try re-connect after 5 seconds")
+			logger.Warn("try re-connect after 5 seconds")
 			time.Sleep(5 * time.Second)
 		}
 	},

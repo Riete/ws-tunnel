@@ -7,6 +7,10 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/riete/go-websocket v1.0.5 h1:WAO3wtJf+3izInLYUgLcR6Z98hPd35ZGLJJB6nXkrZs=
 github.com/riete/go-websocket v1.0.5/go.mod h1:5zxEbvqN5COzfFNo+KAxp3hSkJKHAuBYLazAgaeZsWA=
+github.com/riete/logger v0.1.4 h1:oyhd9XZepBSkTzSK/GbEFRxhVkNPbAtLC76KruK+otM=
+github.com/riete/logger v0.1.4/go.mod h1:sFvaYxRrYH2zg164ixdKgQVkD5i0KLFdLeWFwds3MN4=
+github.com/riete/logger v0.2.1 h1:D3G3dpBrRIq/aEh0OoLui/dJvZ/viPqQ14H1sT8+1ag=
+github.com/riete/logger v0.2.1/go.mod h1:sFvaYxRrYH2zg164ixdKgQVkD5i0KLFdLeWFwds3MN4=
 github.com/riete/ws2ssh v0.0.15 h1:BrALoSXwadroFfBDawBXbnfofAq9pa8HlmwvwPuFEuI=
 github.com/riete/ws2ssh v0.0.15/go.mod h1:ugEciebrM0O/zpVseV8X56qEn7bxByTI8Ju396SvNAY=
 github.com/riete/ws2ssh v0.0.16 h1:MfGOGWdhZdrpQYXYwMdWumvuf5oaxo9PYP4v7eOzsjg=
