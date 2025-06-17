@@ -17,7 +17,7 @@ var rootCmd = &cobra.Command{
 	Use:   "ws-tunnel",
 	Short: "ws tunnel server or client or proxy",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		var level slog.Level
+		level := slog.LevelInfo
 		switch logLevel {
 		case "debug":
 			level = slog.LevelDebug

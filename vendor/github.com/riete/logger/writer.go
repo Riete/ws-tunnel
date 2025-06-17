@@ -17,53 +17,94 @@ type FileWriter struct {
 	f       *os.File
 	rotator Rotator
 	path    string
-	wSize   *atomic.Int64
-	bw      *bufio.Writer
-	flushAt time.Time
+	written *atomic.Int64
+	mu      sync.Mutex
 }
 
 func (f *FileWriter) open() {
 	f.f, _ = os.OpenFile(f.path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	f.bw = bufio.NewWriter(f.f)
 }
 
 func (f *FileWriter) loadSize() {
 	fs, _ := f.f.Stat()
-	f.wSize.Store(fs.Size())
+	f.written.Store(fs.Size())
 }
 
 func (f *FileWriter) Close() error {
-	_ = f.bw.Flush()
 	return f.f.Close()
 }
 
-func (f *FileWriter) flush() {
-	if time.Now().Add(-time.Second).After(f.flushAt) && f.bw.Buffered() > 0 {
-		_ = f.bw.Flush()
-		f.flushAt = time.Now()
-	}
-}
-
 func (f *FileWriter) Write(p []byte) (int, error) {
-	n, err := f.bw.Write(p)
-	f.wSize.Add(int64(n))
-	if f.wSize.Load() >= f.rotator.MaxSize() {
-		_ = f.bw.Flush()
-		_ = f.f.Close()
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	n, err := f.f.Write(p)
+	f.written.Add(int64(n))
+	if f.written.Load() >= f.rotator.MaxSize() {
+		_ = f.Close()
 		f.rotator.Rotate(f.path)
 		f.open()
-		f.wSize.Store(0)
+		f.written.Store(0)
 	}
-	f.flush()
 	return n, err
 }
 
 func NewFileWriter(path string, rotator Rotator) io.WriteCloser {
 	_ = os.MkdirAll(filepath.Dir(path), 0755)
-	fw := &FileWriter{path: path, rotator: rotator, wSize: new(atomic.Int64), flushAt: time.Now()}
+	fw := &FileWriter{path: path, rotator: rotator, written: new(atomic.Int64)}
 	fw.open()
 	fw.loadSize()
 	return fw
+}
+
+type BufWriter struct {
+	w        io.Writer
+	bw       *bufio.Writer
+	bufSize  int
+	interval time.Duration
+	mu       sync.Mutex
+	stop     chan struct{}
+}
+
+func (b *BufWriter) flush() {
+	t := time.NewTicker(b.interval)
+	defer t.Stop()
+	for {
+		select {
+		case <-b.stop:
+			return
+		case <-t.C:
+			if b.bw.Buffered() > 0 {
+				b.mu.Lock()
+				_ = b.bw.Flush()
+				b.mu.Unlock()
+			}
+		}
+	}
+}
+
+func (b *BufWriter) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.bw.Write(p)
+}
+
+func (b *BufWriter) Close() error {
+	close(b.stop)
+	_ = b.bw.Flush()
+	if c, ok := b.w.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
+}
+
+func NewBufWriter(w io.Writer, options ...BufWriterOption) io.WriteCloser {
+	b := &BufWriter{w: w, bufSize: 4096, interval: time.Second, stop: make(chan struct{})}
+	for _, option := range options {
+		option(b)
+	}
+	b.bw = bufio.NewWriterSize(w, b.bufSize)
+	go b.flush()
+	return b
 }
 
 type NetworkWriter struct {

@@ -1,24 +1,23 @@
 package logger
 
 import (
-	"io"
 	"log/slog"
 	"os"
 
 	"github.com/riete/logger"
 )
 
-var fw io.WriteCloser
 var defaultLogger *logger.Logger
 
 func Init(level slog.Level) {
-	rotator := logger.NewFileRotator(200*logger.SizeMiB, 1)
-	fw = logger.NewFileWriter("ws-tunnel.log", rotator)
-	options := []logger.Option{logger.WithColor(), logger.WithLogLevel(level)}
-	if level == slog.LevelDebug {
-		options = append(options, logger.WithMultiWriter(os.Stdout))
-	}
-	defaultLogger = logger.New(fw, options...)
+	fw := logger.NewFileWriter("ws-tunnel.log", logger.NewFileRotator(200*logger.SizeMiB, 1))
+	defaultLogger = logger.New(
+		fw,
+		logger.WithColor(),
+		logger.WithLogLevel(level),
+		logger.WithMultiWriter(os.Stdout),
+		logger.WithCaller("source", 4),
+	)
 }
 
 func Debug(msg string, args ...any) {
@@ -38,5 +37,5 @@ func Error(msg string, args ...any) {
 }
 
 func Close() {
-	_ = fw.Close()
+	_ = defaultLogger.Close()
 }
