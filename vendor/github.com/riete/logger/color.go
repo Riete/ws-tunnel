@@ -3,6 +3,7 @@ package logger
 import (
 	"io"
 	"log/slog"
+	"slices"
 )
 
 type Color string
@@ -24,7 +25,9 @@ const (
 
 // DefaultColors overwrite or add additional level colors
 var DefaultColors = map[slog.Level]Color{
+	LevelTrace:      Cyan,
 	slog.LevelDebug: Gray,
+	LevelNotice:     Purple,
 	slog.LevelWarn:  Yellow,
 	slog.LevelError: Red,
 }
@@ -39,7 +42,7 @@ func (c *colorWriter) Write(p []byte) (int, error) {
 	color := DefaultColors[c.level]
 	if color != "" {
 		p = p[0 : len(p)-len(c.lf)]
-		p = append([]byte(start+color), append(p, []byte(string(end)+c.lf)...)...)
+		p = slices.Concat([]byte(start+color), p, []byte(string(end)+c.lf))
 	}
 	return c.w.Write(p)
 }

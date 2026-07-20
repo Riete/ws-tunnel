@@ -141,6 +141,9 @@ func NewServer(w http.ResponseWriter, r *http.Request, h http.Header, options ..
 		option(&upgrader)
 	}
 	conn, err := upgrader.Upgrade(w, r, h)
+	if err != nil {
+		return nil, err
+	}
 	return &Conn{conn: conn, oriPingHandler: conn.PingHandler()}, err
 }
 

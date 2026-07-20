@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+    // use default
+    logger.GetLogger().Info("info log")
     // create a file writer with DefaultFileRotator
     fw := logger.NewFileWriter("logs/test.log", logger.DefaultFileRotator)
     

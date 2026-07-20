@@ -1,0 +1,43 @@
+version: "2"
+
+linters:
+  default: all
+  disable:
+  - wsl
+  - depguard
+  - gomoddirectives
+  - revive
+  - wsl_v5
+  - containedctx
+  - cyclop
+  - exhaustruct
+  - funcorder
+  - gochecknoglobals
+  - gochecknoinits
+  - godot
+  - gosmopolitan
+  - lll
+  - nlreturn
+  - noinlineerr
+  - varnamelen
+  - contextcheck
+  - perfsprint
+  - ireturn
+  - mnd
+  - dupl
+  - wrapcheck
+  - forcetypeassert
+  - exhaustive
+  - embeddedstructfieldcheck
+  - funlen
+  - gocognit
+  - gocyclo
+  - testpackage
+  - errchkjson
+  - paralleltest
+  - protogetter
+  - prealloc
+  - nonamedreturns
+  - err113
+  - gosec
+  - fatcontext
